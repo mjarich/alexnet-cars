@@ -1,4 +1,5 @@
 import os
+import torch
 import pandas as pd
 from torch.utils.data import Dataset
 from torchvision.transforms import Resize
@@ -22,6 +23,10 @@ class StandfordCarsDataset(Dataset):
     def __getitem__(self, index):
         image_path = os.path.join(self.image_dir, self.images[index])
         image = read_image(image_path)
+        
+        # dataset has some grayscale images
+        if image.size()[0] == 1:
+            image = torch.tile(image, (3, 1, 1))
 
         transform = Resize((227,227))
         image = transform(image).float() / 255
