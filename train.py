@@ -21,8 +21,8 @@ def train(net,
         for i, batch in enumerate(trainloader):
             inputs, labels = batch
 
-            inputs.to(device)
-            labels.to(device)
+            inputs = inputs.to(device)
+            labels = labels.to(device)
 
             optimizer.zero_grad()
 

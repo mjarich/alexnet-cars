@@ -23,7 +23,8 @@ class AlexNet(nn.Module):
         self.dense1 = nn.Linear(6*6*256, 4096)
         self.dense2 = nn.Linear(4096, 4096)
         self.dense3 = nn.Linear(4096, self.num_classes)
-        
+       
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -35,10 +36,14 @@ class AlexNet(nn.Module):
         x = F.relu(self.conv5(x))
         x = self.maxpool3(x)
         x = torch.reshape(x, (-1, 6*6*256))
-        x = F.relu(F.dropout(self.dense1(x), p=0.5, training=self.training))
-        x = F.relu(F.dropout(self.dense2(x), p=0.5, training=self.training))
-        x = F.softmax(self.dense3(x), dim=-1)
+        x = self.dropout(F.relu(self.dense1(x)))
+        x = self.dropout(F.relu(self.dense2(x)))
+        x = self.dense3(x)
         return x
+
+    def save(self):
+        model_scripted = torch.jit.script(self)
+        model_scripted.save('./model.pt')
 
 
 if __name__ == "__main__":
@@ -55,8 +60,11 @@ if __name__ == "__main__":
     print('generating training dataset...')
     training_data = StandfordCarsDataset('./stanford-cars/cardatasettrain.csv', 
                                          './stanford-cars/cars_train/')
-    trainloader = DataLoader(training_data, batch_size=16, shuffle=True)
+    trainloader = DataLoader(training_data, batch_size=128, shuffle=True)
 
     print('beginning training...')
-    train(net, trainloader, num_epochs=10, report_freq=1)
+    train(net, trainloader, learn_rate=1e-4, num_epochs=40, report_freq=10)
     
+    print('saving model...')
+    net.save()
+
