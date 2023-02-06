@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.optim as optim
 
@@ -7,6 +8,10 @@ def train(net,
           learn_rate=0.001,
           report_freq=5):
 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'using device: {device}')
+    net.to(device)
+
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=learn_rate)
 
@@ -15,6 +20,10 @@ def train(net,
         running_loss = 0.0
         for i, batch in enumerate(trainloader):
             inputs, labels = batch
+
+            inputs.to(device)
+            labels.to(device)
+
             optimizer.zero_grad()
 
             outputs = net(inputs)
